@@ -23,9 +23,10 @@ export default function Portfolio() {
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault()
       
-      // Use deltaY (vertical scroll) to scroll horizontally
-      // Multiply for smoother/faster scrolling
-      const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+      // Combine both deltaY and deltaX for smooth scrolling
+      // deltaY handles vertical scroll -> horizontal
+      // deltaX handles native horizontal scroll
+      const delta = e.deltaY + e.deltaX
       container.scrollLeft += delta
       
       updateProgress()
