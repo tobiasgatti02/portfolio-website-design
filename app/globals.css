@@ -126,11 +126,12 @@
 
 /* Horizontal scroll container */
 .horizontal-scroll {
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  scroll-behavior: smooth;
+  overscroll-behavior: none;
+  touch-action: pan-x;
 }
 
 .horizontal-scroll::-webkit-scrollbar {

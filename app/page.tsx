@@ -12,15 +12,33 @@ export default function Portfolio() {
     const container = containerRef.current
     if (!container) return
 
-    const handleScroll = () => {
+    const updateProgress = () => {
       const scrollLeft = container.scrollLeft
       const maxScroll = container.scrollWidth - container.clientWidth
-      const progress = (scrollLeft / maxScroll) * 100
+      const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0
       setScrollProgress(progress)
     }
 
-    container.addEventListener("scroll", handleScroll)
-    return () => container.removeEventListener("scroll", handleScroll)
+    // Convert vertical scroll (wheel) to horizontal scroll
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      
+      // Use deltaY (vertical scroll) to scroll horizontally
+      // Multiply for smoother/faster scrolling
+      const delta = e.deltaY !== 0 ? e.deltaY : e.deltaX
+      container.scrollLeft += delta
+      
+      updateProgress()
+    }
+
+    // Initial progress
+    updateProgress()
+
+    container.addEventListener("wheel", handleWheel, { passive: false })
+    
+    return () => {
+      container.removeEventListener("wheel", handleWheel)
+    }
   }, [])
 
   return (
@@ -32,7 +50,7 @@ export default function Portfolio() {
 
       {/* Scroll hint */}
       <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-pulse text-sm text-muted-foreground">
-        Scroll horizontally →
+        Scroll to navigate →
       </div>
 
       {/* Continuous horizontal scroll container */}
