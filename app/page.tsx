@@ -437,7 +437,7 @@ export default function Portfolio() {
               Ready to build something great?
             </h2>
             <p className="mb-8 md:mb-12 max-w-2xl text-pretty text-base md:text-xl leading-relaxed text-muted-foreground">
-              Open to new opportunities and collaborations. Based in Graz, Austria with EU citizenship.
+              Open to new opportunities and collaborations. 
             </p>
 
             <div className="mb-12 space-y-4">
