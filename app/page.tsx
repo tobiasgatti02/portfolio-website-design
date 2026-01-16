@@ -7,8 +7,16 @@ import { Button } from "@/components/ui/button"
 export default function Portfolio() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [scrollProgress, setScrollProgress] = useState(0)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
+    // Detect mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
     const container = containerRef.current
     if (!container) return
 
@@ -19,16 +27,53 @@ export default function Portfolio() {
       setScrollProgress(progress)
     }
 
-    // Convert vertical scroll (wheel) to horizontal scroll
+    // Convert vertical scroll (wheel) to horizontal scroll - Desktop only
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault()
-      
-      // Combine both deltaY and deltaX for smooth scrolling
-      // deltaY handles vertical scroll -> horizontal
-      // deltaX handles native horizontal scroll
       const delta = e.deltaY + e.deltaX
       container.scrollLeft += delta
+      updateProgress()
+    }
+
+    // Touch handling for mobile - convert vertical swipe to horizontal scroll
+    let touchStartX = 0
+    let touchStartY = 0
+    let touchStartScrollLeft = 0
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].clientX
+      touchStartY = e.touches[0].clientY
+      touchStartScrollLeft = container.scrollLeft
+    }
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!touchStartX || !touchStartY) return
+
+      const touchX = e.touches[0].clientX
+      const touchY = e.touches[0].clientY
+      const deltaX = touchStartX - touchX
+      const deltaY = touchStartY - touchY
+
+      // If vertical swipe is dominant, convert to horizontal scroll
+      if (Math.abs(deltaY) > Math.abs(deltaX)) {
+        e.preventDefault()
+        container.scrollLeft = touchStartScrollLeft + deltaY
+      } else {
+        // Natural horizontal swipe
+        e.preventDefault()
+        container.scrollLeft = touchStartScrollLeft + deltaX
+      }
       
+      updateProgress()
+    }
+
+    const handleTouchEnd = () => {
+      touchStartX = 0
+      touchStartY = 0
+    }
+
+    // Listen for scroll events (for native scrolling)
+    const handleScroll = () => {
       updateProgress()
     }
 
@@ -36,9 +81,18 @@ export default function Portfolio() {
     updateProgress()
 
     container.addEventListener("wheel", handleWheel, { passive: false })
+    container.addEventListener("touchstart", handleTouchStart, { passive: true })
+    container.addEventListener("touchmove", handleTouchMove, { passive: false })
+    container.addEventListener("touchend", handleTouchEnd, { passive: true })
+    container.addEventListener("scroll", handleScroll, { passive: true })
     
     return () => {
+      window.removeEventListener('resize', checkMobile)
       container.removeEventListener("wheel", handleWheel)
+      container.removeEventListener("touchstart", handleTouchStart)
+      container.removeEventListener("touchmove", handleTouchMove)
+      container.removeEventListener("touchend", handleTouchEnd)
+      container.removeEventListener("scroll", handleScroll)
     }
   }, [])
 
@@ -51,24 +105,24 @@ export default function Portfolio() {
 
       {/* Scroll hint */}
       <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-pulse text-sm text-muted-foreground">
-        Scroll to navigate →
+        {isMobile ? "Swipe to navigate →" : "Scroll to navigate →"}
       </div>
 
       {/* Continuous horizontal scroll container */}
       <div ref={containerRef} className="horizontal-scroll flex h-full items-center">
         {/* Intro Section */}
-        <section className="flex h-full min-w-[100vw] flex-col items-start justify-center px-16 md:px-24">
+        <section className="flex h-full min-w-[100vw] flex-col items-start justify-center px-6 md:px-24">
           <div className="max-w-4xl">
-            <div className="mb-6 text-sm font-medium tracking-wider text-muted-foreground">
+            <div className="mb-4 md:mb-6 text-xs md:text-sm font-medium tracking-wider text-muted-foreground">
               FULL-STACK SOFTWARE ENGINEER
             </div>
-            <h1 className="mb-6 text-balance text-6xl font-bold leading-tight tracking-tight md:text-7xl lg:text-8xl">
+            <h1 className="mb-4 md:mb-6 text-balance text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-bold leading-tight tracking-tight">
               Tobias Gatti
             </h1>
-            <p className="mb-8 max-w-2xl text-pretty text-xl leading-relaxed text-muted-foreground">
+            <p className="mb-6 md:mb-8 max-w-2xl text-pretty text-base md:text-xl leading-relaxed text-muted-foreground">
               Building production-ready digital experiences with Next.js, TypeScript, and PostgreSQL. Software Engineer.
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-3 md:gap-4">
               <Button asChild size="lg" className="bg-foreground text-background hover:bg-foreground/90">
                 <a href="mailto:tobiasgatti02@gmail.com">Get in Touch</a>
               </Button>
@@ -80,16 +134,16 @@ export default function Portfolio() {
               </Button>
             </div>
           </div>
-          <div className="absolute right-16 top-1/2 -translate-y-1/2 opacity-20">
+          <div className="absolute right-16 top-1/2 -translate-y-1/2 opacity-20 hidden md:block">
             <div className="h-64 w-64 rounded-full bg-gradient-to-br from-accent to-accent/50 blur-3xl" />
           </div>
         </section>
 
         {/* Work Timeline Section */}
-        <section className="flex h-full min-w-[80vw] items-center px-16 md:px-24">
+        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
           <div className="max-w-4xl">
-            <div className="mb-4 text-sm font-medium tracking-wider text-accent">MY WORK</div>
-            <h2 className="mb-8 text-balance text-5xl font-bold leading-tight md:text-6xl">
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">MY WORK</div>
+            <h2 className="mb-6 md:mb-8 text-balance text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
               14+ months crafting production-ready solutions
             </h2>
             <div className="space-y-8">
@@ -131,11 +185,11 @@ export default function Portfolio() {
         </section>
 
         {/* Tolio Project */}
-        <section className="flex h-full min-w-[90vw] items-center px-16 md:px-24">
+        <section className="flex h-full min-w-[95vw] md:min-w-[90vw] items-center px-6 md:px-24">
           <div className="relative max-w-5xl">
-            <div className="mb-4 text-sm font-medium tracking-wider text-accent">LATEST PROJECT</div>
-            <h2 className="mb-4 text-6xl font-bold leading-none md:text-7xl">Tolio</h2>
-            <p className="mb-8 text-2xl text-muted-foreground">Shared Economy Marketplace Platform</p>
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">LATEST PROJECT</div>
+            <h2 className="mb-3 md:mb-4 text-4xl md:text-6xl lg:text-7xl font-bold leading-none">Tolio</h2>
+            <p className="mb-6 md:mb-8 text-lg md:text-2xl text-muted-foreground">Shared Economy Marketplace Platform</p>
 
             <div className="mb-8 grid gap-8 lg:grid-cols-2">
               <div>
@@ -191,11 +245,11 @@ export default function Portfolio() {
         </section>
 
         {/* F1 Stats Project */}
-        <section className="flex h-full min-w-[80vw] items-center px-16 md:px-24">
+        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
           <div className="max-w-5xl">
-            <div className="mb-4 text-sm font-medium tracking-wider text-accent">DATA ANALYSIS</div>
-            <h2 className="mb-4 text-5xl font-bold leading-none md:text-6xl">F1 Stats</h2>
-            <p className="mb-8 text-xl text-muted-foreground">Formula 1 Telemetry Data Analysis Application</p>
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">DATA ANALYSIS</div>
+            <h2 className="mb-3 md:mb-4 text-3xl md:text-5xl lg:text-6xl font-bold leading-none">F1 Stats</h2>
+            <p className="mb-6 md:mb-8 text-base md:text-xl text-muted-foreground">Formula 1 Telemetry Data Analysis Application</p>
 
             <div className="mb-8 grid gap-8 lg:grid-cols-2">
               <div>
@@ -234,11 +288,11 @@ export default function Portfolio() {
         </section>
 
         {/* Bodine Project */}
-        <section className="flex h-full min-w-[80vw] items-center px-16 md:px-24">
+        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
           <div className="max-w-5xl">
-            <div className="mb-4 text-sm font-medium tracking-wider text-accent">E-COMMERCE</div>
-            <h2 className="mb-4 text-5xl font-bold leading-none md:text-6xl">Bodine</h2>
-            <p className="mb-8 text-xl text-muted-foreground">Premium Wine E-commerce Platform</p>
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">E-COMMERCE</div>
+            <h2 className="mb-3 md:mb-4 text-3xl md:text-5xl lg:text-6xl font-bold leading-none">Bodine</h2>
+            <p className="mb-6 md:mb-8 text-base md:text-xl text-muted-foreground">Premium Wine E-commerce Platform</p>
 
             <div className="mb-8 grid gap-8 lg:grid-cols-2">
               <div>
@@ -286,11 +340,11 @@ export default function Portfolio() {
         </section>
 
         {/* Gaming Projects Section */}
-        <section className="flex h-full min-w-[80vw] items-center px-16 md:px-24">
+        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
           <div className="max-w-5xl">
-            <div className="mb-4 text-sm font-medium tracking-wider text-accent">GAME DEVELOPMENT</div>
-            <h2 className="mb-4 text-5xl font-bold leading-none md:text-6xl">Gaming Projects</h2>
-            <p className="mb-8 text-xl text-muted-foreground">Java-based Game Development Portfolio</p>
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">GAME DEVELOPMENT</div>
+            <h2 className="mb-3 md:mb-4 text-3xl md:text-5xl lg:text-6xl font-bold leading-none">Gaming Projects</h2>
+            <p className="mb-6 md:mb-8 text-base md:text-xl text-muted-foreground">Java-based Game Development Portfolio</p>
 
             <div className="space-y-8">
               <div className="border-l-2 border-accent pl-6">
@@ -330,11 +384,11 @@ export default function Portfolio() {
         </section>
 
         {/* Freelance Work Section */}
-        <section className="flex h-full min-w-[80vw] items-center px-16 md:px-24">
+        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
           <div className="max-w-5xl">
-            <div className="mb-4 text-sm font-medium tracking-wider text-accent">FREELANCE</div>
-            <h2 className="mb-4 text-5xl font-bold leading-none md:text-6xl">Student Platform</h2>
-            <p className="mb-8 text-xl text-muted-foreground">Educational Web Platform Development</p>
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">FREELANCE</div>
+            <h2 className="mb-3 md:mb-4 text-3xl md:text-5xl lg:text-6xl font-bold leading-none">Student Platform</h2>
+            <p className="mb-6 md:mb-8 text-base md:text-xl text-muted-foreground">Educational Web Platform Development</p>
 
             <div className="mb-8">
               <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Project</h3>
@@ -376,13 +430,13 @@ export default function Portfolio() {
         </section>
 
         {/* Contact Section */}
-        <section className="flex h-full min-w-[100vw] flex-col items-start justify-center px-16 md:px-24">
+        <section className="flex h-full min-w-[100vw] flex-col items-start justify-center px-6 md:px-24">
           <div className="max-w-4xl">
-            <div className="mb-6 text-sm font-medium tracking-wider text-muted-foreground">LET&apos;S CONNECT</div>
-            <h2 className="mb-8 text-balance text-6xl font-bold leading-tight tracking-tight md:text-7xl">
+            <div className="mb-4 md:mb-6 text-xs md:text-sm font-medium tracking-wider text-muted-foreground">LET&apos;S CONNECT</div>
+            <h2 className="mb-6 md:mb-8 text-balance text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
               Ready to build something great?
             </h2>
-            <p className="mb-12 max-w-2xl text-pretty text-xl leading-relaxed text-muted-foreground">
+            <p className="mb-8 md:mb-12 max-w-2xl text-pretty text-base md:text-xl leading-relaxed text-muted-foreground">
               Open to new opportunities and collaborations. Based in Graz, Austria with EU citizenship.
             </p>
 
