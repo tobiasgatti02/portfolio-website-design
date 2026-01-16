@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   title: "Tobias Gatti | Full-Stack Software Engineer",
   description:
     "Product-oriented Full-Stack Software Engineer with expertise in Next.js, TypeScript, and PostgreSQL. Based in Graz, Austria.",
-  generator: "v0.app",
+  
   icons: {
     icon: [
       {
