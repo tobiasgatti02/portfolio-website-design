@@ -144,7 +144,7 @@ export default function Portfolio() {
           <div className="max-w-4xl">
             <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">MY WORK</div>
             <h2 className="mb-6 md:mb-8 text-balance text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              14+ months crafting production-ready solutions
+              4 years crafting production-ready solutions
             </h2>
             <div className="space-y-8">
               <div className="border-l-2 border-accent pl-6">
@@ -180,6 +180,43 @@ export default function Portfolio() {
                   <span className="text-lg">Delivered 15+ production features directly impacting revenue</span>
                 </li>
               </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Education Section */}
+        <section className="flex h-full min-w-[95vw] md:min-w-[90vw] items-center px-6 md:px-24">
+          <div className="max-w-5xl">
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">EDUCATION</div>
+            <h2 className="mb-6 md:mb-8 text-balance text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
+              Engineering foundations with a global perspective
+            </h2>
+
+            <div className="grid gap-6 md:gap-8 lg:grid-cols-2">
+              <div className="border-l-2 border-accent pl-5 md:pl-6">
+                <div className="mb-2 text-xs md:text-sm font-medium text-muted-foreground">ARGENTINA</div>
+                <h3 className="mb-2 text-xl md:text-2xl font-bold">Universidad Nacional del Sur</h3>
+                <p className="mb-3 text-base md:text-lg font-medium">Systems Engineer</p>
+                <p className="text-sm md:text-base leading-relaxed text-muted-foreground">
+                  Graduated with a strong foundation in software engineering, systems design, and problem solving.
+                </p>
+              </div>
+
+              <div className="border-l-2 border-accent pl-5 md:pl-6">
+                <div className="mb-2 text-xs md:text-sm font-medium text-muted-foreground">AUSTRIA · 2026</div>
+                <h3 className="mb-2 text-xl md:text-2xl font-bold">Universität Graz</h3>
+                <p className="mb-3 text-base md:text-lg font-medium">International Coursework</p>
+                <p className="mb-4 text-sm md:text-base leading-relaxed text-muted-foreground">
+                  Advanced courses focused on intelligent systems and data-informed product development.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {["Machine Learning", "Product Intelligence"].map((course) => (
+                    <span key={course} className="border border-border bg-card px-3 py-1 text-xs md:text-sm font-medium">
+                      {course}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -426,6 +463,26 @@ export default function Portfolio() {
                 ))}
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* Journal Coming Soon Section */}
+        <section className="relative flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
+          <div className="max-w-4xl">
+            <div className="mb-4 md:mb-6 text-xs md:text-sm font-medium tracking-wider text-accent">COMING SOON</div>
+            <h2 className="mb-4 md:mb-6 text-balance text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
+              My Journal
+            </h2>
+            <p className="mb-6 max-w-2xl text-pretty text-base md:text-xl leading-relaxed text-muted-foreground">
+              Notes on software, machine learning, product intelligence, and the ideas I collect along the way.
+            </p>
+            <div className="inline-flex border border-border bg-card px-4 py-2 text-xs md:text-sm font-medium uppercase tracking-wider text-muted-foreground">
+              First entries in progress
+            </div>
+          </div>
+
+          <div className="absolute right-16 top-1/2 -z-10 hidden -translate-y-1/2 opacity-10 md:block">
+            <div className="h-72 w-72 rounded-full bg-gradient-to-br from-accent to-accent/50 blur-3xl" />
           </div>
         </section>
 
