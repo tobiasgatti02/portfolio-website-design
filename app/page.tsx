@@ -1,117 +1,124 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Github, Linkedin, Mail, ExternalLink, Download } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { ArrowDown, ArrowRight, Download, ExternalLink, Github, Linkedin, Mail } from "lucide-react"
+import { SideB } from "@/components/side-b"
+
+function ActionLink({ href, children, icon: Icon = ArrowRight, external = false, download = false }: {
+  href: string
+  children: React.ReactNode
+  icon?: typeof ArrowRight
+  external?: boolean
+  download?: boolean
+}) {
+  return (
+    <a
+      href={href}
+      target={external ? "_blank" : undefined}
+      rel={external ? "noopener noreferrer" : undefined}
+      download={download || undefined}
+      className="action-link group"
+    >
+      <span className="action-link-label">{children}</span>
+      <span className="action-link-icon"><Icon size={18} strokeWidth={1.8} /></span>
+    </a>
+  )
+}
 
 export default function Portfolio() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const educationRef = useRef<HTMLElement>(null)
   const [scrollProgress, setScrollProgress] = useState(0)
-  const [isMobile, setIsMobile] = useState(false)
+  const [inVertical, setInVertical] = useState(false)
+  const [sideBOpen, setSideBOpen] = useState(false)
 
   useEffect(() => {
-    // Detect mobile
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window)
+    const openSecret = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+      if (event.key.toLowerCase() !== "b" || event.altKey || event.ctrlKey || event.metaKey || target?.matches("input, textarea, [contenteditable='true']")) return
+      setSideBOpen(true)
     }
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
+    window.addEventListener("keydown", openSecret)
+    return () => window.removeEventListener("keydown", openSecret)
+  }, [])
 
+  useEffect(() => {
     const container = containerRef.current
     if (!container) return
 
     const updateProgress = () => {
-      const scrollLeft = container.scrollLeft
-      const maxScroll = container.scrollWidth - container.clientWidth
-      const progress = maxScroll > 0 ? (scrollLeft / maxScroll) * 100 : 0
-      setScrollProgress(progress)
+      const horizontalMax = Math.max(0, container.scrollWidth - container.clientWidth)
+      const verticalMax = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+      const horizontalShare = 0.3
+      const progress = horizontalMax > 0 ? container.scrollLeft / horizontalMax : 1
+      setScrollProgress(Math.min(100, (progress * horizontalShare + (window.scrollY / (verticalMax || 1)) * (1 - horizontalShare)) * 100))
+      setInVertical(window.scrollY > 4 || container.scrollLeft >= (educationRef.current?.offsetLeft ?? horizontalMax) - 4)
     }
 
-    // Convert vertical scroll (wheel) to horizontal scroll - Desktop only
     const handleWheel = (e: WheelEvent) => {
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX
+      const educationStart = educationRef.current?.offsetLeft ?? container.scrollWidth - container.clientWidth
+      const atEducation = container.scrollLeft >= educationStart - 3
+      if (window.scrollY > 0 || (atEducation && delta > 0)) return
+      if (delta === 0) return
       e.preventDefault()
-      const delta = e.deltaY + e.deltaX
-      container.scrollLeft += delta
+      container.scrollLeft = Math.min(educationStart, container.scrollLeft + delta)
       updateProgress()
     }
 
-    // Touch handling for mobile - convert vertical swipe to horizontal scroll
-    let touchStartX = 0
     let touchStartY = 0
     let touchStartScrollLeft = 0
 
     const handleTouchStart = (e: TouchEvent) => {
-      touchStartX = e.touches[0].clientX
       touchStartY = e.touches[0].clientY
       touchStartScrollLeft = container.scrollLeft
     }
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!touchStartX || !touchStartY) return
-
-      const touchX = e.touches[0].clientX
-      const touchY = e.touches[0].clientY
-      const deltaX = touchStartX - touchX
-      const deltaY = touchStartY - touchY
-
-      // If vertical swipe is dominant, convert to horizontal scroll
-      if (Math.abs(deltaY) > Math.abs(deltaX)) {
-        e.preventDefault()
-        container.scrollLeft = touchStartScrollLeft + deltaY
-      } else {
-        // Natural horizontal swipe
-        e.preventDefault()
-        container.scrollLeft = touchStartScrollLeft + deltaX
-      }
-      
+      const deltaY = touchStartY - e.touches[0].clientY
+      const educationStart = educationRef.current?.offsetLeft ?? container.scrollWidth - container.clientWidth
+      if (window.scrollY > 0 || (container.scrollLeft >= educationStart - 3 && deltaY > 0)) return
+      if (Math.abs(deltaY) < 5) return
+      e.preventDefault()
+      container.scrollLeft = Math.min(educationStart, touchStartScrollLeft + deltaY)
       updateProgress()
     }
 
-    const handleTouchEnd = () => {
-      touchStartX = 0
-      touchStartY = 0
-    }
-
-    // Listen for scroll events (for native scrolling)
-    const handleScroll = () => {
-      updateProgress()
-    }
-
-    // Initial progress
     updateProgress()
-
     container.addEventListener("wheel", handleWheel, { passive: false })
     container.addEventListener("touchstart", handleTouchStart, { passive: true })
     container.addEventListener("touchmove", handleTouchMove, { passive: false })
-    container.addEventListener("touchend", handleTouchEnd, { passive: true })
-    container.addEventListener("scroll", handleScroll, { passive: true })
+    container.addEventListener("scroll", updateProgress, { passive: true })
+    window.addEventListener("scroll", updateProgress, { passive: true })
+    window.addEventListener("resize", updateProgress)
     
     return () => {
-      window.removeEventListener('resize', checkMobile)
       container.removeEventListener("wheel", handleWheel)
       container.removeEventListener("touchstart", handleTouchStart)
       container.removeEventListener("touchmove", handleTouchMove)
-      container.removeEventListener("touchend", handleTouchEnd)
-      container.removeEventListener("scroll", handleScroll)
+      container.removeEventListener("scroll", updateProgress)
+      window.removeEventListener("scroll", updateProgress)
+      window.removeEventListener("resize", updateProgress)
     }
   }, [])
 
   return (
-    <main className="h-screen w-screen overflow-hidden bg-background">
+    <main className="w-full bg-background">
+      <SideB open={sideBOpen} onClose={() => setSideBOpen(false)} />
       {/* Progress indicator */}
       <div className="fixed left-0 top-0 z-50 h-1 w-full bg-border">
         <div className="h-full bg-accent transition-all duration-100" style={{ width: `${scrollProgress}%` }} />
       </div>
 
       {/* Scroll hint */}
-      <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-pulse text-sm text-muted-foreground">
-        {isMobile ? "Swipe to navigate →" : "Scroll to navigate →"}
+      <div className="nav-hint fixed bottom-5 left-1/2 z-50 -translate-x-1/2 text-xs font-semibold uppercase tracking-[0.2em]">
+        {inVertical ? <><ArrowDown size={14} /> Scroll to explore</> : <><ArrowRight size={14} /> Scroll to explore</>}
       </div>
 
       {/* Continuous horizontal scroll container */}
-      <div ref={containerRef} className="horizontal-scroll flex h-full items-center">
+      <div ref={containerRef} className="horizontal-scroll flex h-svh items-center">
         {/* Intro Section */}
-        <section className="flex h-full min-w-[100vw] flex-col items-start justify-center px-6 md:px-24">
+        <section className="intro-panel flex h-full min-w-[100vw] shrink-0 flex-col items-start justify-center px-6 md:px-24">
           <div className="max-w-4xl">
             <div className="mb-4 md:mb-6 text-xs md:text-sm font-medium tracking-wider text-muted-foreground">
               FULL-STACK SOFTWARE ENGINEER
@@ -120,24 +127,12 @@ export default function Portfolio() {
               Tobias Gatti
             </h1>
             <p className="mb-6 md:mb-8 max-w-2xl text-pretty text-base md:text-xl leading-relaxed text-muted-foreground">
-              Building production-ready digital experiences with Next.js, TypeScript, and PostgreSQL. Software Engineer.
+              Building production-ready digital experiences. I love design and well-crafted things. 
             </p>
             <div className="flex flex-wrap gap-3 md:gap-4">
-              <Button asChild size="lg" className="bg-foreground text-background hover:bg-foreground/90">
-                <a href="mailto:tobiasgatti02@gmail.com">Get in Touch</a>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-foreground bg-transparent">
-                <a href="https://github.com/tobiasgatti02" target="_blank" rel="noopener noreferrer">
-                  <Github className="mr-2 h-5 w-5" />
-                  GitHub
-                </a>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="border-foreground bg-transparent">
-                <a href="/TobiasGatti_Cv.pdf" download="TobiasGatti_Cv.pdf" type="application/pdf">
-                  <Download className="mr-2 h-5 w-5" />
-                  Download CV
-                </a>
-              </Button>
+              <ActionLink href="mailto:tobiasgatti02@gmail.com" icon={Mail}>Get in touch</ActionLink>
+              <ActionLink href="https://github.com/tobiasgatti02" icon={Github} external>GitHub</ActionLink>
+              <ActionLink href="/TobiasGatti_Cv.pdf" icon={Download} download>Download CV</ActionLink>
             </div>
           </div>
           <div className="absolute right-16 top-1/2 -translate-y-1/2 opacity-20 hidden md:block">
@@ -146,7 +141,7 @@ export default function Portfolio() {
         </section>
 
         {/* Work Timeline Section */}
-        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
+        <section className="work-panel flex h-full min-w-[100vw] shrink-0 items-center px-6 md:px-24">
           <div className="max-w-4xl">
             <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">MY WORK</div>
             <h2 className="mb-6 md:mb-8 text-balance text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
@@ -191,7 +186,7 @@ export default function Portfolio() {
         </section>
 
         {/* Education Section */}
-        <section className="flex h-full min-w-[95vw] md:min-w-[90vw] items-center px-6 md:px-24">
+        <section ref={educationRef} className="flex h-full min-w-[100vw] items-center px-6 md:px-24">
           <div className="max-w-5xl">
             <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">EDUCATION</div>
             <h2 className="mb-6 md:mb-8 text-balance text-3xl md:text-5xl lg:text-6xl font-bold leading-tight">
@@ -227,10 +222,43 @@ export default function Portfolio() {
           </div>
         </section>
 
+      </div>
+
+      <div className="vertical-story">
+        {/* F4brica Project */}
+        <section className="project-section fabrica-section">
+          <div className="fabrica-content max-w-5xl">
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">01 / FEATURED PROJECT</div>
+            <h2 className="mb-3 md:mb-4 text-4xl md:text-6xl lg:text-7xl font-bold leading-none">F4brica</h2>
+            <p className="mb-8 max-w-3xl text-lg leading-relaxed text-muted-foreground md:text-2xl">
+              A virtual studio for architecture, built to bring projects and clients into the same space.
+            </p>
+
+            <div className="fabrica-details mb-8 grid gap-8 lg:grid-cols-2">
+              <div>
+                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">The idea</h3>
+                <p className="max-w-lg text-lg leading-relaxed">
+                  From first presentation to final decision, architects can organize their work, share progress, and give clients a clearer way to experience each project.
+                </p>
+              </div>
+              <div>
+                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Inside the studio</h3>
+                <ul className="space-y-3 text-lg">
+                  <li className="flex items-start gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />Projects, deliverables, and pending work in one view</li>
+                  <li className="flex items-start gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />Interactive 3D models clients can explore</li>
+                  <li className="flex items-start gap-3"><span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />A shared space for feedback and decisions</li>
+                </ul>
+              </div>
+            </div>
+
+            <ActionLink href="https://f4brica.app" icon={ExternalLink} external>Explore f4brica.app</ActionLink>
+          </div>
+        </section>
+
         {/* Tolio Project */}
-        <section className="flex h-full min-w-[95vw] md:min-w-[90vw] items-center px-6 md:px-24">
+        <section className="project-section tolio-section">
           <div className="relative max-w-5xl">
-            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">LATEST PROJECT</div>
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">02 / SELECTED PROJECT</div>
             <h2 className="mb-3 md:mb-4 text-4xl md:text-6xl lg:text-7xl font-bold leading-none">Tolio</h2>
             <p className="mb-6 md:mb-8 text-lg md:text-2xl text-muted-foreground">Shared Economy Marketplace Platform</p>
 
@@ -269,15 +297,7 @@ export default function Portfolio() {
                     </span>
                   ))}
                 </div>
-                <a
-                  href="https://tolio.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-lg font-medium underline underline-offset-4 hover:text-accent"
-                >
-                  Visit tolio.app
-                  <ExternalLink className="h-5 w-5" />
-                </a>
+<ActionLink href="https://tolio.app" icon={ExternalLink} external>Explore tolio.app</ActionLink>
               </div>
             </div>
 
@@ -288,9 +308,9 @@ export default function Portfolio() {
         </section>
 
         {/* F1 Stats Project */}
-        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
+        <section className="project-section f1-section">
           <div className="max-w-5xl">
-            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">DATA ANALYSIS</div>
+            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">03 / DATA ANALYSIS</div>
             <h2 className="mb-3 md:mb-4 text-3xl md:text-5xl lg:text-6xl font-bold leading-none">F1 Stats</h2>
             <p className="mb-6 md:mb-8 text-base md:text-xl text-muted-foreground">Formula 1 Telemetry Data Analysis Application</p>
 
@@ -330,60 +350,8 @@ export default function Portfolio() {
           </div>
         </section>
 
-        {/* Bodine Project */}
-        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
-          <div className="max-w-5xl">
-            <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">E-COMMERCE</div>
-            <h2 className="mb-3 md:mb-4 text-3xl md:text-5xl lg:text-6xl font-bold leading-none">Bodine</h2>
-            <p className="mb-6 md:mb-8 text-base md:text-xl text-muted-foreground">Premium Wine E-commerce Platform</p>
-
-            <div className="mb-8 grid gap-8 lg:grid-cols-2">
-              <div>
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Features</h3>
-                <ul className="space-y-3">
-                  <li className="flex items-start gap-3 text-lg">
-                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-                    <span>Full-featured e-commerce solution with cart and checkout</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-lg">
-                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-                    <span>Automated CI/CD pipeline for seamless deployments</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-lg">
-                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-                    <span>Responsive design system optimized for all devices</span>
-                  </li>
-                  <li className="flex items-start gap-3 text-lg">
-                    <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
-                    <span>Secure payment integration and order management</span>
-                  </li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Stack</h3>
-                <div className="mb-6 flex flex-wrap gap-2">
-                  {["Next.js", "Node.js", "TailwindCSS", "Vercel"].map((tech) => (
-                    <span key={tech} className="border border-border bg-card px-4 py-2 text-sm font-medium">
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-                <a
-                  href="https://bodine.vercel.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-lg font-medium underline underline-offset-4 hover:text-accent"
-                >
-                  Visit bodine.vercel.app
-                  <ExternalLink className="h-5 w-5" />
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
-
         {/* Gaming Projects Section */}
-        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
+        <section className="project-section gaming-section">
           <div className="max-w-5xl">
             <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">GAME DEVELOPMENT</div>
             <h2 className="mb-3 md:mb-4 text-3xl md:text-5xl lg:text-6xl font-bold leading-none">Gaming Projects</h2>
@@ -427,7 +395,7 @@ export default function Portfolio() {
         </section>
 
         {/* Freelance Work Section */}
-        <section className="flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
+        <section className="project-section student-section">
           <div className="max-w-5xl">
             <div className="mb-3 md:mb-4 text-xs md:text-sm font-medium tracking-wider text-accent">FREELANCE</div>
             <h2 className="mb-3 md:mb-4 text-3xl md:text-5xl lg:text-6xl font-bold leading-none">Student Platform</h2>
@@ -472,28 +440,8 @@ export default function Portfolio() {
           </div>
         </section>
 
-        {/* Journal Coming Soon Section */}
-        <section className="relative flex h-full min-w-[90vw] md:min-w-[80vw] items-center px-6 md:px-24">
-          <div className="max-w-4xl">
-            <div className="mb-4 md:mb-6 text-xs md:text-sm font-medium tracking-wider text-accent">COMING SOON</div>
-            <h2 className="mb-4 md:mb-6 text-balance text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
-              My Journal
-            </h2>
-            <p className="mb-6 max-w-2xl text-pretty text-base md:text-xl leading-relaxed text-muted-foreground">
-              Notes on software, machine learning, product intelligence, and the ideas I collect along the way.
-            </p>
-            <div className="inline-flex border border-border bg-card px-4 py-2 text-xs md:text-sm font-medium uppercase tracking-wider text-muted-foreground">
-              First entries in progress
-            </div>
-          </div>
-
-          <div className="absolute right-16 top-1/2 -z-10 hidden -translate-y-1/2 opacity-10 md:block">
-            <div className="h-72 w-72 rounded-full bg-gradient-to-br from-accent to-accent/50 blur-3xl" />
-          </div>
-        </section>
-
         {/* Contact Section */}
-        <section className="flex h-full min-w-[100vw] flex-col items-start justify-center px-6 md:px-24">
+        <section className="project-section contact-section flex-col items-start justify-center">
           <div className="max-w-4xl">
             <div className="mb-4 md:mb-6 text-xs md:text-sm font-medium tracking-wider text-muted-foreground">LET&apos;S CONNECT</div>
             <h2 className="mb-6 md:mb-8 text-balance text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
@@ -504,53 +452,22 @@ export default function Portfolio() {
             </p>
 
             <div className="mb-12 space-y-4">
-              <a
-                href="mailto:tobiasgatti02@gmail.com"
-                className="group flex items-center gap-4 text-xl font-medium hover:text-accent"
-              >
-                <Mail className="h-6 w-6" />
-                tobiasgatti02@gmail.com
+              <a href="mailto:tobiasgatti02@gmail.com" className="contact-email">
+                <Mail className="h-5 w-5" /> tobiasgatti02@gmail.com <ArrowRight className="ml-auto h-5 w-5" />
               </a>
               <div className="flex items-center gap-4 text-xl font-medium text-muted-foreground">
                 +54 9 291 644 6463
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-4">
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background"
-              >
-                <a href="/TobiasGatti_Cv.pdf" download="TobiasGatti_Cv.pdf" type="application/pdf">
-                  <Download className="mr-2 h-5 w-5" />
-                  Download CV
-                </a>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background"
-              >
-                <a href="https://github.com/tobiasgatti02" target="_blank" rel="noopener noreferrer">
-                  <Github className="mr-2 h-5 w-5" />
-                  GitHub
-                </a>
-              </Button>
-              <Button
-                asChild
-                size="lg"
-                variant="outline"
-                className="border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background"
-              >
-                <a href="https://www.linkedin.com/in/tobias-gatti-610a83170" target="_blank" rel="noopener noreferrer">
-                  <Linkedin className="mr-2 h-5 w-5" />
-                  LinkedIn
-                </a>
-              </Button>
+            <div className="flex flex-wrap gap-3">
+              <ActionLink href="/TobiasGatti_Cv.pdf" icon={Download} download>Download CV</ActionLink>
+              <ActionLink href="https://github.com/tobiasgatti02" icon={Github} external>GitHub</ActionLink>
+              <ActionLink href="https://www.linkedin.com/in/tobias-gatti-610a83170" icon={Linkedin} external>LinkedIn</ActionLink>
             </div>
+            <button type="button" className="side-b-entrance" onClick={() => setSideBOpen(true)} aria-label="Abrir el espacio secreto Lado B">
+              <span>¿LLEGASTE HASTA ACÁ?</span><span className="side-b-entrance-mark">A <span>/</span> B</span><span>TOCÁ EL LADO B <ArrowRight size={14} /></span>
+            </button>
           </div>
 
           <div className="absolute right-16 top-1/2 -translate-y-1/2 opacity-20">
