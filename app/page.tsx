@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Github, Linkedin, Mail, ExternalLink } from "lucide-react"
+import { Github, Linkedin, Mail, ExternalLink, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function Portfolio() {
@@ -130,6 +130,12 @@ export default function Portfolio() {
                 <a href="https://github.com/tobiasgatti02" target="_blank" rel="noopener noreferrer">
                   <Github className="mr-2 h-5 w-5" />
                   GitHub
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="border-foreground bg-transparent">
+                <a href="/TobiasGatti_Cv.pdf" download="TobiasGatti_Cv.pdf" type="application/pdf">
+                  <Download className="mr-2 h-5 w-5" />
+                  Download CV
                 </a>
               </Button>
             </div>
@@ -510,7 +516,18 @@ export default function Portfolio() {
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background"
+              >
+                <a href="/TobiasGatti_Cv.pdf" download="TobiasGatti_Cv.pdf" type="application/pdf">
+                  <Download className="mr-2 h-5 w-5" />
+                  Download CV
+                </a>
+              </Button>
               <Button
                 asChild
                 size="lg"
