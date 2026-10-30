@@ -1,0 +1,29 @@
+# Tobias Gatti
+
+> Tobias Gatti (also written Tobías Gatti; GitHub: tobiasgatti02) is a product engineer working across full stack and applied AI. At Firmaway (Nov 2024 - present) he built the Firmaway Capital release end to end and an internal RAG knowledge assistant with hybrid retrieval, verifiable citations and human-reviewed evals. He builds with Next.js, React, TypeScript, Node.js and PostgreSQL, and also designs and develops websites for studios and brands. He is open to remote engineering roles. Languages: Spanish (native), English (professional), German (B1).
+
+## Profile
+
+- [Portfolio (English)](https://www.tobiasgatti.com/en): experience, education, projects and contact
+- [Portfolio (Español)](https://www.tobiasgatti.com/es): versión en español
+- [CV (PDF)](https://www.tobiasgatti.com/TobiasGatti_Cv.pdf): one-page résumé
+- [GitHub](https://github.com/tobiasgatti02)
+- [LinkedIn](https://www.linkedin.com/in/tobias-gatti-610a83170)
+- Contact: tobiasgatti02@gmail.com
+
+## Projects
+
+- [F4brica](https://f4brica.app): virtual studio for architecture firms: projects, deliverables, interactive 3D models and client feedback in one place
+- [Tolio](https://tolio.app): peer-to-peer sharing-economy marketplace with identity verification (face recognition), real-time WebSocket chat and Stripe escrow payments
+- Firmaway Knowledge Assistant (internal): RAG over product docs and PDFs with BM25 + embeddings, rank fusion, vision-based parsing, required citations and an evals console
+- [Monitor Legal](https://github.com/tobiasgatti02/monitor-legal): daily dashboard for Argentine law firms with PJN automation
+- [Web design work](https://www.tobiasgatti.com/webs/en): conceptual websites designed and built for architecture and photography studios (Estudio Aqua, Estudio Soler, Jut)
+
+## Education
+
+- Universidad Nacional del Sur (Argentina): software/systems engineering degree
+- University of Graz / Universität Graz (Austria, 2026): Machine Learning Economics specialization
+
+## Skills
+
+Next.js, React, TypeScript, Node.js, PostgreSQL, tRPC, Stripe, WebSockets, REST APIs, Docker, AWS, LLM integration, RAG, LLM evaluation, Three.js, Cloudflare Workers AI, web design, product discovery.
